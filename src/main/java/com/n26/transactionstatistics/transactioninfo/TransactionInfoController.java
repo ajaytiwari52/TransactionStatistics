@@ -61,7 +61,10 @@ public class TransactionInfoController {
 	 * The API is non-blocking. The servlet thread is freed up immediately after the request 
 	 * arrives. The processes of the request is delegated to internal thread mechanism
 	 * using ExecutorService. This post API has its own dedicated threading mechanism, which 
-	 * will be displayed in console as transactionPostExecutor
+	 * will be displayed in console as transactionPostExecutor. We are using binding validator to
+	 * reject all transactions that are older than 60s, this way, the request doesn't even start the
+	 * servlet thread
+	 * 
 	 */
 	@RequestMapping(path = "/transactions", method = RequestMethod.POST)
 	public DeferredResult<ResponseEntity<?>> postTransactions(@Valid @RequestBody TransactionInfoDTO transactionInfoDTO,
@@ -69,7 +72,7 @@ public class TransactionInfoController {
 		
 		ZonedDateTime startTime = ZonedDateTime.now();
 
-		logger.info("Servlet Thread Started -{}",startTime);
+		logger.debug("Servlet Thread Started -{}",startTime);
 		if (result.hasErrors()) {
 			throw new CutoffTimeExceededException();
 		}
@@ -78,19 +81,23 @@ public class TransactionInfoController {
 		CompletableFuture.supplyAsync(() -> transactionInfoService.saveTransactionInfo(transactionInfoDTO), transactionPostExecutor)
 				.whenComplete((p, throwable) ->
 				{
-					logger.info("Current Thread Name :{}", Thread.currentThread().getName());
+					logger.debug("Current Thread Name :{}", Thread.currentThread().getName());
 					deferredResult.setResult(ResponseEntity.status(201).build());
 				}
 
 		
 		);
 		ZonedDateTime endTime = ZonedDateTime.now();
-		long durationInMillis = Duration.between(endTime, startTime).toMillis();
-		logger.info("Servlet thread released-{}",endTime);
-		logger.info("Time taken for the IO to complete(in millis) - {}",durationInMillis);
+		long durationInMillis = Duration.between(startTime, endTime).toMillis();
+		logger.debug("Servlet thread released-{}",endTime);
+		logger.info("Time taken for the POST Transaction IO to complete(in millis) - {}",durationInMillis);
 		
 	
-		logger.info("Number of Active Threads :{}", Thread.activeCount());
+		logger.debug("Number of Active Threads :{}", Thread.activeCount());
+		if(durationInMillis>1000L)
+		{
+			logger.info("IO for POST was Blocked for thatn 1 Second-{} ",durationInMillis);
+		}
 
 		return deferredResult;
 
@@ -115,7 +122,7 @@ public class TransactionInfoController {
 		ZonedDateTime startTime = ZonedDateTime.now();
 		
 
-		logger.info("Servlet Thread Started for statistics API Started -{}",startTime);
+		logger.debug("Servlet Thread Started for statistics API Started -{}",startTime);
 
 
 		DeferredResult<DoubleSummaryStatistics> deferredResult = new DeferredResult<>();
@@ -131,10 +138,15 @@ public class TransactionInfoController {
 				
 				);
 		ZonedDateTime endTime = ZonedDateTime.now();
-		long durationInMillis = Duration.between(endTime, startTime).toMillis();
-		logger.info("Servlet thread released -{}",endTime);
-		logger.info("Time taken for the IO to complete(in millis) - {}",durationInMillis);
+		long durationInMillis = Duration.between(startTime,endTime).toMillis();
+		logger.debug("Servlet thread released -{}",endTime);
+		logger.info("Time taken for the GET statistics IO to complete(in millis) - {}",durationInMillis);
 		logger.info("Number of Active Threads :{}", Thread.activeCount());
+		
+		if(durationInMillis>1000L)
+		{
+			logger.info("IO for GET Blocked for thatn 1 Second-{} ",durationInMillis);
+		}
 
 		return deferredResult;
 

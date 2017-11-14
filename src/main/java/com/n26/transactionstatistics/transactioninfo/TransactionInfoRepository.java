@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TransactionInfoRepository extends JpaRepository<TransactionInfo, Long> {
 
-	//@Query("select c from TransactionInfo c where c.transactionTimeStamp > :startDate and c.transactionTimeStamp<:endDate")
+
 	List<TransactionInfo>findByTransactionTimeStampBetween(ZonedDateTime startDate, ZonedDateTime endDate);
 }

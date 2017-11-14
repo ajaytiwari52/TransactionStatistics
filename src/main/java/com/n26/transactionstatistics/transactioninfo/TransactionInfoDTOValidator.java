@@ -29,7 +29,10 @@ public class TransactionInfoDTOValidator implements Validator {
 		return TransactionInfoDTO.class.isAssignableFrom(clazz);
 
 	}
-
+	/**
+	 * The validator is rejecting all timestamps that are older than
+	 * the cutoff timestamp in this case 60s
+	 */
 	@Override
 	public void validate(Object target, Errors errors) {
 		TransactionInfoDTO transactionInfo = (TransactionInfoDTO) target;
@@ -39,8 +42,7 @@ public class TransactionInfoDTOValidator implements Validator {
 		ZonedDateTime transactionDateTime = ZonedDateTime
 				.ofInstant(Instant.ofEpochMilli(transactionInfo.getTimestamp()), ZoneId.of("UTC"));
 		Duration duration = Duration.between(cutoffTime, transactionDateTime);
-		if (duration.isNegative()) {
-			logger.info("Duration is stale");
+		if (duration.isNegative()) {			
 			errors.reject("204");
 
 		}

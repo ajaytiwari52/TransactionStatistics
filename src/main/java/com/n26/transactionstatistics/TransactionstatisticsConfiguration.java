@@ -12,6 +12,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 @Configuration	
 public class TransactionstatisticsConfiguration {
 
+	/**
+	 * Dedicated Thread Modeling to handle POST Requests for incoming
+	 * Transactions	 
+	 */
 	@Bean
 	public ExecutorService transactionPostExecutorService() {
 		final ThreadFactory threadFactory = new ThreadFactoryBuilder()
@@ -22,6 +26,9 @@ public class TransactionstatisticsConfiguration {
 		return es;
 	}
 	
+	/**
+	 * Dedicated Thread Modeling to handle GET Statistics
+	 */
 	@Bean()
 	public ExecutorService transactionStatisticsExecutorService() {
 		final ThreadFactory threadFactory = new ThreadFactoryBuilder()

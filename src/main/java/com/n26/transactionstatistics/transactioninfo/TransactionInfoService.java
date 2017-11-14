@@ -42,9 +42,9 @@ public class TransactionInfoService {
 		DoubleSummaryStatistics transactionStatistics = transactionInfoList.stream()
 				.collect(Collectors.summarizingDouble(TransactionInfo::getAmount));
 
-		logger.info("transactionStatistics:{}", transactionInfoList);
-		logger.info("now:{}", now);
-		logger.info("cutoffTime:{}", cutoffTime);
+		logger.debug("transactionStatistics:{}", transactionInfoList);
+		logger.debug("now:{}", now);
+		logger.debug("cutoffTime:{}", cutoffTime);
 		return transactionStatistics;
 
 	}

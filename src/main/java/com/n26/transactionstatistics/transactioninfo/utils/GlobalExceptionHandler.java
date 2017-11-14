@@ -16,8 +16,7 @@ public class GlobalExceptionHandler {
 
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	@ExceptionHandler(CutoffTimeExceededException.class)
-	public void handleCutoffTimeExceededException() {
-		logger.error("IOException handler executed");
+	public void handleCutoffTimeExceededException() {		
 
 	}
 

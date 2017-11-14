@@ -17,7 +17,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +33,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -40,10 +46,10 @@ import com.n26.transactionstatistics.TransactionStatisticsApplication;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TransactionStatisticsApplication.class)
 @AutoConfigureMockMvc
-// @TestPropertySource(
-// locations = "classpath:application-integrationtest.properties")
 @AutoConfigureTestDatabase
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@ActiveProfiles("test")
+@TestPropertySource(locations = "classpath:application-test.properties")
 public class TransactionInfoControllerIntegrationTest {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -67,14 +73,9 @@ public class TransactionInfoControllerIntegrationTest {
 
 	@Autowired
 	private TestHelper testHelper;
-	
-	@Autowired
-	private TransactionInfoRepository repository;	
-
-	
 
 	@Autowired
-	private TransactionInfoService transationInfoService;
+	private TransactionInfoRepository repository;
 
 	@Before
 	public void setup() {
@@ -82,12 +83,20 @@ public class TransactionInfoControllerIntegrationTest {
 		leastAllowedTransactionTimestamp = currentTimeinMillis - cutoffDurationinMillis;
 		timeStampOlderThan60s = leastAllowedTransactionTimestamp - cutoffDurationinMillis;
 	}
+	
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+	   protected void starting(Description description) {
+	      logger.info("--------------------------------------------Starting test:--------------------------------------- :" + description.getMethodName());
+	   }
+	};
 
 	/*
-	 * Here we are doing positive test. Meaning all the transactions are younger 60s,
-	 * Firstly we are posting transactions, where all the timestamps are within 60s of currentTimeinMillis
-	 * Along with that we are also testing asynchronousness of our end points.Meaning that the endpoints are 
-	 * non-blocking 
+	 * Here we are doing positive test. Meaning all the transactions are younger
+	 * 60s, Firstly we are posting transactions, where all the timestamps are within
+	 * 60s of currentTimeinMillis Along with that we are also testing
+	 * asynchronousness of our end points.Meaning that the endpoints are
+	 * non-blocking
 	 */
 	@Test
 	public void testAllTransactionsAreYoungerThan60s() throws Exception {
@@ -125,12 +134,13 @@ public class TransactionInfoControllerIntegrationTest {
 		this.mockMvc.perform(asyncDispatch(mvcResult)).andExpect(jsonPath("count").value(transactionsList.size()));
 
 	}
-	
+
 	/*
-	 * Here we are doing negative test. Meaning all the transactions are older than 60s,
-	 * Firstly we are posting transactions, where all the timestamps are at least 60s older thatn  currentTimeinMillis
-	 * Along with that we are also testing asynchronousness of our end points.Meaning that the endpoints are 
-	 * non-blocking 
+	 * Here we are doing negative test. Meaning all the transactions are older than
+	 * 60s, Firstly we are posting transactions, where all the timestamps are at
+	 * least 60s older thatn currentTimeinMillis Along with that we are also testing
+	 * asynchronousness of our end points.Meaning that the endpoints are
+	 * non-blocking
 	 */
 
 	@Test
@@ -140,7 +150,7 @@ public class TransactionInfoControllerIntegrationTest {
 
 		IntStream.range(0, 5).forEach(i -> {
 			transactionsList.add(new TransactionInfoDTO(testHelper.generateRandomDouble(10, 100),
-					testHelper.generateRandomTimeStamp(timeStampOlderThan60s,leastAllowedTransactionTimestamp )));
+					testHelper.generateRandomTimeStamp(timeStampOlderThan60s, leastAllowedTransactionTimestamp)));
 		});
 
 		IntStream.range(0, transactionsList.size()).forEach(i -> {
@@ -164,32 +174,26 @@ public class TransactionInfoControllerIntegrationTest {
 		this.mockMvc.perform(asyncDispatch(mvcResult)).andExpect(jsonPath("count").value(0));
 
 	}
-	
+
 	/*
-	 * Here we are doing a mixed bag test. 
-	 * In this scenario we have both transactions that are older than and younger than 60s.
-	 * After that we are asserting that, only the transactions that are younger than 60s are returned 
-	 * from the statistics API
-	 * Along with that we are also testing asynchronousness of our end points.Meaning that the endpoints are 
-	 * non-blocking 
+	 * Here we are doing a mixed bag test(positive and negative). In this scenario we have both
+	 * transactions that are older than and younger than 60s. After that we are
+	 * asserting that, only the transactions that are younger than 60s are returned
+	 * from the statistics API Along with that we are also testing asynchronousness
+	 * of our end points.
 	 */
 
 	@Test
 	public void testMixedBag() throws Exception {
 		List<TransactionInfoDTO> transactionsList = new ArrayList<>();
-
-//		IntStream.range(0, 6).forEach(i -> {
-//			transactionsList.add(new TransactionInfoDTO(testHelper.generateRandomDouble(10, 100),
-//					testHelper.generateRandomTimeStamp(timeStampOlderThan60s, currentTimeinMillis)));
-//		});
+		
 
 		IntStream.range(0, 10).forEach(i -> {
 			transactionsList.add(new TransactionInfoDTO(testHelper.generateRandomDouble(10, 100),
 					testHelper.generateRandomTimeStamp(timeStampOlderThan60s, currentTimeinMillis)));
 		});
-		
-		
-		int size = getListOfTransactionYoungerThan60s(transactionsList).size();
+
+		int numberOfValidTransactions = getListOfTransactionYoungerThan60s(transactionsList).size();
 
 		IntStream.range(0, transactionsList.size()).forEach(i -> {
 
@@ -205,15 +209,17 @@ public class TransactionInfoControllerIntegrationTest {
 			}
 
 		});
-		
-		logger.error("getListOfTransactionYoungerThan60s size -{}",size);
-		await().until( repositoryNotEmpty() );
-		
+
+		logger.error("getListOfTransactionYoungerThan60s size -{}", numberOfValidTransactions);
+		// As the ENDPOINTS are async, some conditions are needed to prove that data is
+		// really persisted, before continuing with the get request
+		await().until(repositoryNotEmpty());
+
 		MvcResult mvcResult = this.mockMvc.perform(get("/statistics").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(request().asyncStarted())
 				.andExpect(request().asyncResult(instanceOf(DoubleSummaryStatistics.class))).andReturn();
 		mvcResult.getAsyncResult();
-		this.mockMvc.perform(asyncDispatch(mvcResult)).andExpect(jsonPath("count").value(size));
+		this.mockMvc.perform(asyncDispatch(mvcResult)).andExpect(jsonPath("count").value(numberOfValidTransactions));
 
 	}
 
@@ -224,13 +230,13 @@ public class TransactionInfoControllerIntegrationTest {
 		return list;
 
 	}
-	
+
 	private Callable<Boolean> repositoryNotEmpty() {
-	      return new Callable<Boolean>() {
-	            public Boolean call() throws Exception {
-	                  return repository.count() !=0L; // The condition that must be fulfilled
-	            }
-	      };
+		return new Callable<Boolean>() {
+			public Boolean call() throws Exception {
+				return repository.count() != 0L; // The condition that must be fulfilled
+			}
+		};
 	}
 
 }
