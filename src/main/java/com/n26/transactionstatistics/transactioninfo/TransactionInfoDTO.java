@@ -1,5 +1,10 @@
 package com.n26.transactionstatistics.transactioninfo;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 public class TransactionInfoDTO {
 
 	private Double amount;

@@ -1,5 +1,6 @@
 package com.n26.transactionstatistics.transactioninfo;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.DoubleSummaryStatistics;
@@ -45,11 +46,30 @@ public class TransactionInfoController {
 
 	@Autowired
 	private TransactionInfoService transactionInfoService;
-
+	
+	/**
+	 * 
+	 * @param transactionInfoDTO
+	 * @param result
+	 * @return
+	 * @throws CutoffTimeExceededException
+	 * 
+	 * Takes a TransactionInfo Object and saves it after DTO validation.
+	 * The API ignores any transaction timestamp that are 60s older 
+	 * than systemtimestamp(IN UTC)
+	 * The API does not do anything if anytime stamp is in the future
+	 * The API is non-blocking. The servlet thread is freed up immediately after the request 
+	 * arrives. The processes of the request is delegated to internal thread mechanism
+	 * using ExecutorService. This post API has its own dedicated threading mechanism, which 
+	 * will be displayed in console as transactionPostExecutor
+	 */
 	@RequestMapping(path = "/transactions", method = RequestMethod.POST)
 	public DeferredResult<ResponseEntity<?>> postTransactions(@Valid @RequestBody TransactionInfoDTO transactionInfoDTO,
 			BindingResult result) throws CutoffTimeExceededException {
+		
+		ZonedDateTime startTime = ZonedDateTime.now();
 
+		logger.info("Servlet Thread Started -{}",startTime);
 		if (result.hasErrors()) {
 			throw new CutoffTimeExceededException();
 		}
@@ -64,18 +84,39 @@ public class TransactionInfoController {
 
 		
 		);
-		logger.info("Servlet thread released");
-		logger.info("Servlet thread released :{}", Thread.activeCount());
+		ZonedDateTime endTime = ZonedDateTime.now();
+		long durationInMillis = Duration.between(endTime, startTime).toMillis();
+		logger.info("Servlet thread released-{}",endTime);
+		logger.info("Time taken for the IO to complete(in millis) - {}",durationInMillis);
+		
+	
+		logger.info("Number of Active Threads :{}", Thread.activeCount());
 
 		return deferredResult;
 
-		// transactionInfoService.saveTransactionInfo(transactionInfoDTO);
+		
 
 	}
 
+	
+	/**
+	 * Returns the statistics of all the transactions that occured 
+	 * in the last 60s.
+	 * The API is non-blocking. The servlet thread is freed up immediately after the request 
+	 * arrives. The processes of the request is delegated to internal thread mechanism
+	 * using ExecutorService. This GET API has its own dedicated threading mechanism, which 
+	 * will be displayed in console as transactionStatisticsExecutor
+	 * 
+	 * @return
+	 */	
+	
 	@RequestMapping(path = "/statistics", method = RequestMethod.GET)
 	public @ResponseBody DeferredResult<DoubleSummaryStatistics> getStatistics() {
-		logger.info("Request received");
+		ZonedDateTime startTime = ZonedDateTime.now();
+		
+
+		logger.info("Servlet Thread Started for statistics API Started -{}",startTime);
+
 
 		DeferredResult<DoubleSummaryStatistics> deferredResult = new DeferredResult<>();
 
@@ -89,8 +130,11 @@ public class TransactionInfoController {
 					
 				
 				);
-		logger.info("Servlet thread released");
-		logger.info("Servlet thread released :{}", Thread.activeCount());
+		ZonedDateTime endTime = ZonedDateTime.now();
+		long durationInMillis = Duration.between(endTime, startTime).toMillis();
+		logger.info("Servlet thread released -{}",endTime);
+		logger.info("Time taken for the IO to complete(in millis) - {}",durationInMillis);
+		logger.info("Number of Active Threads :{}", Thread.activeCount());
 
 		return deferredResult;
 

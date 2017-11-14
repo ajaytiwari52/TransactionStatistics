@@ -7,6 +7,7 @@ import java.time.ZonedDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -15,6 +16,13 @@ import org.springframework.validation.Validator;
 public class TransactionInfoDTOValidator implements Validator {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	/*
+	 * The amount of cutoff duration seconds. All transactions that occurred before
+	 * this duration are not taking into consideration 
+	 */
+	@Value("${n26.transactionstatistics.cutoffduration:60}")
+	private long cutoffDuration;
 
 	@Override
 	public boolean supports(Class<?> clazz) {

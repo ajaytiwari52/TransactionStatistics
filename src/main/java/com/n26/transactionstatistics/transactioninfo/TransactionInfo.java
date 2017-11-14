@@ -8,7 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import lombok.AllArgsConstructor;
+import org.hibernate.annotations.Type;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,6 +26,7 @@ public class TransactionInfo implements Serializable {
 	private Long id;
 	private Double amount;
 
+	
 	private ZonedDateTime transactionTimeStamp;
 
 	public TransactionInfo(Double amount, ZonedDateTime transactionTimeStamp) {

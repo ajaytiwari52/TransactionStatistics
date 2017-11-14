@@ -18,7 +18,7 @@ public class TransactionstatisticsConfiguration {
 		        .setNameFormat("transactionPostExecutor-%d")
 		        .setDaemon(true)
 		        .build();
-		ExecutorService es = Executors.newCachedThreadPool(threadFactory);
+		ExecutorService es = Executors.newFixedThreadPool(2,threadFactory);
 		return es;
 	}
 	
