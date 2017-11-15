@@ -125,16 +125,7 @@ public class TransactionInfoServiceJunitTest {
 			
 		});
 		return transactionsList;
-	}
+	}	
 	
-	
-	@Configuration
-	public class TransactionInfoRepositoryTestConfiguration {
-	    @Bean
-	    @Primary
-	    public TransactionInfoRepository nameService() {
-	        return Mockito.mock(TransactionInfoRepository.class);
-	    }
-	}
 
 }
