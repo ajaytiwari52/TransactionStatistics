@@ -34,9 +34,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.n26.transactionstatistics.TransactionStatisticsApplication;
-import com.n26.transactionstatistics.transactioninfo.TransactionInfoDTO;
-import com.n26.transactionstatistics.transactioninfo.TransactionInfoRepository;
+import com.kiaziz.transactionstatistics.TransactionStatisticsApplication;
+import com.kiaziz.transactionstatistics.transactioninfo.TransactionInfoDTO;
+import com.kiaziz.transactionstatistics.transactioninfo.TransactionInfoRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TransactionStatisticsApplication.class)

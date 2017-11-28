@@ -30,6 +30,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.kiaziz.transactionstatistics.transactioninfo.TransactionInfo;
+import com.kiaziz.transactionstatistics.transactioninfo.TransactionInfoRepository;
+import com.kiaziz.transactionstatistics.transactioninfo.TransactionInfoService;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 //@ActiveProfiles("test")

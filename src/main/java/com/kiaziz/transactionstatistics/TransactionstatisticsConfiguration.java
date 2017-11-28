@@ -1,4 +1,4 @@
-package com.n26.transactionstatistics;
+package com.kiaziz.transactionstatistics;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

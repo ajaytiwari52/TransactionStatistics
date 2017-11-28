@@ -1,4 +1,4 @@
-package com.n26.transactionstatistics.transactioninfo;
+package com.kiaziz.transactionstatistics.transactioninfo;
 
 import java.time.ZonedDateTime;
 import java.util.List;
